@@ -5,13 +5,11 @@ on:
     branches: [master]
     paths:
       - "src/**"
-      - "!src/node/24.20.0/**"
       - "build/**"
   pull_request:
     branches: [master]
     paths:
       - "src/**"
-      - "!src/node/24.20.0/**"
       - "build/**"
 
 env:
@@ -30,11 +28,11 @@ jobs:
     name: Images to DockerHub (Windows)
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login docker hub
       - name: Login to DockerHub
-        uses: azure/docker-login@v1
+        uses: docker/login-action@v4
         with:
           username: ${{env.DOCKERHUB_USERNAME}}
           password: ${{env.DOCKERHUB_TOKEN}}
@@ -51,11 +49,11 @@ jobs:
     needs: [build-hub-windows]
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login docker hub
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           username: ${{env.DOCKERHUB_USERNAME}}
           password: ${{env.DOCKERHUB_TOKEN}}
@@ -72,11 +70,11 @@ jobs:
     needs: [build-hub-linux]
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login aliyun chengdu
       - name: Login to Aliyun Chengdu
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ${{env.ALIYUN_REGISTRY}}
           username: ${{env.ALIYUN_USERNAME}}
@@ -94,11 +92,11 @@ jobs:
     needs: [build-aliyun-windows]
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login aliyun chengdu
       - name: Login to Aliyun Chengdu
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ${{env.ALIYUN_REGISTRY}}
           username: ${{env.ALIYUN_USERNAME}}
@@ -116,11 +114,11 @@ jobs:
     needs: [build-hub-linux]
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login aliyun hk
       - name: Login to Aliyun HK
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ${{env.ALIYUN_HK_REGISTRY}}
           username: ${{env.ALIYUN_USERNAME}}
@@ -138,11 +136,11 @@ jobs:
     needs: [build-aliyun-hk-windows]
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login aliyun hk
       - name: Login to Aliyun HK
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ${{env.ALIYUN_HK_REGISTRY}}
           username: ${{env.ALIYUN_USERNAME}}
@@ -161,11 +159,11 @@ jobs:
     name: Sync to DockerHub
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login docker hub
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           username: ${{env.DOCKERHUB_USERNAME}}
           password: ${{env.DOCKERHUB_TOKEN}}
@@ -181,11 +179,11 @@ jobs:
     name: Sync to Aliyun Chengdu
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login aliyun chengdu
       - name: Login to Aliyun Chengdu
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.ALIYUN_REGISTRY }}
           username: ${{ vars.ALIYUN_USERNAME }}
@@ -202,11 +200,11 @@ jobs:
     name: Sync to Aliyun HK
     steps:
       # checkout source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       # login aliyun hk
       - name: Login to Aliyun HK
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.ALIYUN_HK_REGISTRY }}
           username: ${{ vars.ALIYUN_USERNAME }}

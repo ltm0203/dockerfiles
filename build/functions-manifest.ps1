@@ -13,8 +13,9 @@
     - 命名空间兼容性处理
 
 .COMPATIBILITY
-    支持旧版本命名空间格式，避免重复添加命名空间导致路径错误。
-    例如：当目标仓库已包含源命名空间时，自动使用简化路径。
+    支持目标仓库地址包含命名空间的格式，避免重复追加 Docker Hub 源命名空间。
+    例如：registry.cn-chengdu.aliyuncs.com/yoyosoft 会直接生成
+    registry.cn-chengdu.aliyuncs.com/yoyosoft/node:24.20.0。
 
 .EXAMPLE
     # 构建多平台镜像
@@ -198,15 +199,15 @@ function GetManifestImageTag($DockerfileDir, $Registry, $Namespace) {
     return $manifestImageTag
 }
 
-# 获取目标仓库镜像名称（兼容旧版本命名空间）
+# 获取目标仓库镜像名称（兼容单层仓库约束）
 function GetTargetManifestImageTag($DockerfileDir, $Registry, $Namespace, $SourceNamespace) {
     <#
     .SYNOPSIS
-        获取目标仓库的镜像标签，支持旧版本命名空间兼容性
+        获取目标仓库的镜像标签，支持目标 registry 已包含命名空间的格式
     
     .DESCRIPTION
-        此函数用于解决镜像复制时的命名空间兼容性问题。
-        当目标仓库地址已经包含源命名空间时，避免重复添加命名空间。
+        此函数用于解决镜像复制时的仓库层级兼容性问题。
+        当目标仓库地址已经包含命名空间时，只追加镜像名，避免生成多层级仓库路径。
     
     .PARAMETER DockerfileDir
         Dockerfile 所在目录路径
@@ -218,7 +219,7 @@ function GetTargetManifestImageTag($DockerfileDir, $Registry, $Namespace, $Sourc
         目标命名空间
     
     .PARAMETER SourceNamespace
-        源命名空间，用于检查是否重复
+        源命名空间。为兼容现有调用保留，不参与目标仓库路径拼接。
     
     .EXAMPLE
         # 源仓库: ltm0203/playwright:v1.54.0-jammy
@@ -232,8 +233,8 @@ function GetTargetManifestImageTag($DockerfileDir, $Registry, $Namespace, $Sourc
     
     .NOTES
         兼容性逻辑：
-        1. 如果目标仓库地址包含源命名空间，则直接使用目标仓库 + 镜像名:标签
-        2. 如果目标仓库地址不包含源命名空间，则使用目标仓库 + 目标命名空间 + 镜像名:标签
+        1. 如果目标仓库地址已经包含路径，则直接使用目标仓库 + 镜像名:标签
+        2. 如果目标仓库只有主机名，则使用目标仓库 + 目标命名空间 + 镜像名:标签
     #>
     
     # 使用手动分割来正确处理路径，因为路径可能使用正斜杠或反斜杠
@@ -255,17 +256,17 @@ function GetTargetManifestImageTag($DockerfileDir, $Registry, $Namespace, $Sourc
     Write-Host "  镜像名称: $imageName" -ForegroundColor Gray
     Write-Host "  镜像标签: $imageTag" -ForegroundColor Gray
 
-    # 检查目标仓库是否已经包含源命名空间
-    # 使用更精确的检测逻辑
-    if ($Registry -like "*$SourceNamespace*") {
-        # 如果目标仓库已经包含源命名空间，则直接使用目标仓库
-        # 避免重复添加命名空间，如：registry.cn-chengdu.aliyuncs.com/yoyosoft/ltm0203/playwright:v1.54.0-jammy
-        # 正确结果：registry.cn-chengdu.aliyuncs.com/yoyosoft/playwright:v1.54.0-jammy
-        $manifestImageTag = "${Registry}/${imageName}:${imageTag}".TrimStart("/")
-        Write-Host "目标仓库已包含源命名空间，使用简化路径: $manifestImageTag" -ForegroundColor Yellow
+    # 阿里云等仓库把命名空间放在 registry 路径中，例如：
+    # registry.cn-chengdu.aliyuncs.com/yoyosoft。
+    # 此时不能再次追加 Docker Hub 的源命名空间，否则会生成不受支持的
+    # yoyosoft/ltm0203/node 多层级仓库路径。
+    $normalizedRegistry = $Registry.Trim().TrimEnd("/")
+    $registryPathParts = $normalizedRegistry -split "/"
+    if ($registryPathParts.Count -gt 1) {
+        $manifestImageTag = "${normalizedRegistry}/${imageName}:${imageTag}".TrimStart("/")
+        Write-Host "目标仓库已包含命名空间，使用扁平仓库路径: $manifestImageTag" -ForegroundColor Yellow
     } else {
-        # 否则使用指定的命名空间
-        $manifestImageTag = "${Registry}/${Namespace}/${imageName}:${imageTag}".TrimStart("/")
+        $manifestImageTag = "${normalizedRegistry}/${Namespace}/${imageName}:${imageTag}".TrimStart("/")
         Write-Host "使用完整命名空间路径: $manifestImageTag" -ForegroundColor Green
     }
 
