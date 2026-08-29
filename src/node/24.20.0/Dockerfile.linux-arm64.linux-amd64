@@ -1,0 +1,13 @@
+FROM node:24.20.0
+
+ARG PNPM_VERSION=10.6.2
+
+LABEL org.opencontainers.image.title="Node.js 24 with pnpm" \
+      org.opencontainers.image.description="Node.js 24.20.0 with pnpm 10.6.2" \
+      org.opencontainers.image.source="https://github.com/ltm0203/dockerfiles"
+
+RUN npm install --global "pnpm@${PNPM_VERSION}" --no-audit --no-fund \
+    && mkdir -p /root/.pnpm \
+    && pnpm config set store-dir /root/.pnpm --global \
+    && test "$(node --version)" = "v24.20.0" \
+    && test "$(pnpm --version)" = "${PNPM_VERSION}"

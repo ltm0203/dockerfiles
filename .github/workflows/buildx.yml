@@ -5,11 +5,13 @@ on:
     branches: [master]
     paths:
       - "src/**"
+      - "!src/node/24.20.0/**"
       - "build/**"
   pull_request:
     branches: [master]
     paths:
       - "src/**"
+      - "!src/node/24.20.0/**"
       - "build/**"
 
 env:
